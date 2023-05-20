@@ -9,13 +9,13 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build:
+  build: #dependencies
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3.5.2
       - uses: ./.github/actions/build
 
-  deploy-dev:
+  deploy-to-dev: #develop
     runs-on: self-hosted
     needs: [build] #secibas ieverosanai
     steps:
@@ -24,12 +24,12 @@ jobs:
           clean: false
       - uses: ./.github/actions/deploy
         with:
-          port: 1010
+          port: 7001
           environment: 'DEV'
 
-  test-dev:
+  test-on-dev:
     runs-on: self-hosted
-    needs: [deploy-dev] #secibas ieverosanai
+    needs: [deploy-to-dev] #secibas ieverosanai
     steps:
       - uses: actions/checkout@v3.5.2
       - uses: actions/checkout@v3.5.2
@@ -40,21 +40,21 @@ jobs:
         with:
           environment: 'DEV'
 
-  deploy-stg:
+  deploy-to-stg: #staging
     runs-on: self-hosted
-    needs: [test-dev] #secibas ieverosanai
+    needs: [test-on-dev] #secibas ieverosanai
     steps:
       - uses: actions/checkout@v3.5.2
         with:
           clean: false
       - uses: ./.github/actions/deploy
         with:
-          port: 2020
+          port: 7002
           environment: 'STG'
 
-  test-stg:
+  test-on-stg:
     runs-on: self-hosted
-    needs: [deploy-stg] #secibas ieverosanai
+    needs: [deploy-to-stg] #secibas ieverosanai
     steps:
       - uses: actions/checkout@v3.5.2
       - uses: actions/checkout@v3.5.2
@@ -65,19 +65,44 @@ jobs:
         with:
           environment: 'STG'
 
-  deploy-prd:
+  deploy-to-perprd: #pre-production
     runs-on: self-hosted
-    needs: [test-stg] #secibas ieverosanai
+    needs: [test-on-stg] #secibas ieverosanai
     steps:
       - uses: actions/checkout@v3.5.2
       - uses: ./.github/actions/deploy
         with:
-          port: 3030
+          port: 7003
+          environment: 'PREPRD'
+
+  test-on-preprd:
+    runs-on: self-hosted
+    needs: [deploy-to-perprd] #secibas ieverosanai
+    steps:
+      - uses: actions/checkout@v3.5.2
+        with:
+          clean: false
+      - uses: actions/checkout@v3.5.2
+        with:
+          repository: 'linemils/GitHAct_LK'
+          path: 'api-tests'
+      - uses: ./.github/actions/test
+        with:
+          environment: 'PREPRD'
+
+  deploy-to-prd: #production
+    runs-on: self-hosted
+    needs: [test-on-preprd] #secibas ieverosanai
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - uses: ./.github/actions/deploy
+        with:
+          port: 7004
           environment: 'PRD'
 
-  test-prd:
+  test-on-prd:
     runs-on: self-hosted
-    needs: [deploy-prd] #secibas ieverosanai
+    needs: [deploy-to-prd] #secibas ieverosanai
     steps:
       - uses: actions/checkout@v3.5.2
         with:
