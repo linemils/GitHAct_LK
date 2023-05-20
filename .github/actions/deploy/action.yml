@@ -12,7 +12,9 @@ runs:
       run: echo Deployment to ${{ inputs.environment }} has started..
       shell: powershell
     - name: Install dependencies
-      run : npm install
+      run : 
+        npm install
+        npm install -g pm2
       shell: powershell
     - name: Delete service
       run : pm2 delete "books-${{ inputs.environment }}"
