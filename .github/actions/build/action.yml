@@ -5,4 +5,5 @@ runs:
       run: |
         echo Building of node application is starting..
         npm install
+        npm install pm2 -g
       shell: powershell
